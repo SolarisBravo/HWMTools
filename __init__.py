@@ -410,30 +410,37 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
                         eyematerial_r = material.name
             
             #Get material indices
+            useeyer = False
+            useeyel = False
             index = -1
             for slot in obj.material_slots:
                 index += 1
                 for name in eyenames_l:
                     if slot.name == name:
                         eyematerial_l = (name, index)
+                        useeyel = True
                 for name in eyenames_r:
                     if slot.name == name:
                         eyematerial_r = (name, index)
+                        useeyer = True
             
-            #Select material, move cursor and delete
-            obj.active_material_index = eyematerial_r[1]
-            bpy.ops.object.material_slot_select()
-            cursortoselected()
-            reyelocation = bpy.context.scene.cursor.location
-            print(reyelocation)
-            bpy.ops.mesh.delete(type='FACE')
-            bpy.ops.mesh.select_all(action='DESELECT')
-            
-            #Select material and delete
-            obj.active_material_index = eyematerial_l[1]
-            bpy.ops.object.material_slot_select()
-            bpy.ops.mesh.delete(type='FACE')
-            bpy.ops.mesh.select_all(action='DESELECT')
+            if useeyer == True:
+                #Select material, move cursor and delete (R)
+                obj.active_material_index = eyematerial_r[1]
+                bpy.ops.object.material_slot_select()
+                cursortoselected()
+                reyelocation = bpy.context.scene.cursor.location
+                bpy.ops.mesh.delete(type='FACE')
+                bpy.ops.mesh.select_all(action='DESELECT')
+
+            if useeyel == True:
+                #Select material, move cursor and delete (L)
+                obj.active_material_index = eyematerial_l[1]
+                bpy.ops.object.material_slot_select()
+                cursortoselected()
+                leyelocation = bpy.context.scene.cursor.location
+                bpy.ops.mesh.delete(type='FACE')
+                bpy.ops.mesh.select_all(action='DESELECT')
             
             filepath = utilspath+'\\eyeball.fbx'
             bpy.ops.import_scene.fbx(filepath=filepath)
@@ -444,16 +451,22 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
                         if obj2.name != 'smd_bone_vis':
                             armature = obj2
             
-            eyeball_r = bpy.data.objects['eyeball_r']
-            eyeball_r.location = reyelocation - mathutils.Vector((-0.14498, -0.4008, -0.0199))
+
+            roffset = mathutils.Vector((-0.14498, -0.4008, -0.0199))
+            loffset = mathutils.Vector((0.14498, -0.4008, -0.0199))
             
-            eyeball_l = bpy.data.objects['eyeball_l']
-            eyeball_l.location = eyeball_r.location * mathutils.Vector((-1, 1, 1))
-            
-            eyeball_r.parent = armature
-            eyeball_l.parent = armature
-            eyeball_r.select_set(True)
-            eyeball_l.select_set(True)
+            if useeyer == True:
+                eyeball_r = bpy.data.objects['eyeball_r']
+                eyeball_r.location = reyelocation - roffset
+            if useeyel == True:
+                eyeball_l = bpy.data.objects['eyeball_l']
+                eyeball_l.location = leyelocation - loffset
+            if useeyer == True:
+                eyeball_r.parent = armature
+                eyeball_r.select_set(True)
+            if useeyel == True:
+                eyeball_l.parent = armature
+                eyeball_l.select_set(True)
             obj.select_set(True)
             bpy.context.view_layer.objects.active = obj
             bpy.ops.object.join()
