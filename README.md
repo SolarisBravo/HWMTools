@@ -1,4 +1,4 @@
-A Blender addon for converting HWM (hardware morph) models from Source 1 to Source 2. Only tested with Team Fortress 2 models, but should work with custom content as well.
+A Blender addon for converting HWM (hardware morph) models from Source 1 to Source 2. Only tested with Team Fortress 2 models, but should work with most custom content as well.
 
 Also includes a Source 2 prefab for automatically setting up flex controllers.
 
