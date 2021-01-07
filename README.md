@@ -9,7 +9,7 @@ Instructions:
 
 1. Install Rectus's fork of Blender Source Tools: https://github.com/Rectus/BlenderSourceTools. The original will not work.
 
-2. Install my addon, hosted here on this Github page.
+2. [Download](https://github.com/SolarisBravo/HWMTools/archive/main.zip) and install my addon.
 
 3. Copy "hwmcontrols.vmdl_prefab" to "C:\Program Files (x86)\Steam\steamapps\common\Half-Life Alyx\content\hlvr_addons\YOURADDONNAME\models\player\hwm\prefabs\"
 
