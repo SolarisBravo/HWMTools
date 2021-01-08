@@ -41,7 +41,7 @@ class Settings(bpy.types.PropertyGroup):
     clearnormals : bpy.props.BoolProperty(
         name="Clear normals",
         description="May reduce rendering artifacts, may make them worse",
-        default = True) 
+        default = False) 
 
     untriangulate : bpy.props.BoolProperty(
         name="Untriangulate",
@@ -323,11 +323,14 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
                 bpy.ops.object.mode_set(mode='OBJECT')
             armature.hide_set(True)
             
+            scenehasshapekeys = False
             for obj in bpy.data.objects:
                 if obj.type == 'MESH':
                     if obj.data.shape_keys:
                         obj.select_set(True)
                         bpy.context.view_layer.objects.active = obj
+                        scenehasshapekeys = True
+            return scenehasshapekeys
             
         def bbox(ob):
             return (mathutils.Vector(b) for b in ob.bound_box)
@@ -387,7 +390,7 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
         scene = context.scene
         clearscene()
         bpy.ops.import_scene.smd(filepath=bpy.context.scene.toolscene.qcpath, upAxis='Y')
-        postimportcleanup()
+        scenehasshapekeys = postimportcleanup()
 
         #Cleanup shape keys
         meshes = []
@@ -405,39 +408,47 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
         properties.forward_parity = '-Y'
 
         obj = bpy.context.object
-        selecthalf()
-        bpy.ops.object.mode_set(mode='OBJECT')
+        if scenehasshapekeys == True:
+            selecthalf()
+            bpy.ops.object.mode_set(mode='OBJECT')
 
-        #Find vertex group names
-        vtapath = bpy.context.scene.toolscene.qcpath[:-3] + '_01.vta'
-        vtalines = []
-        with open(vtapath) as myfile:
-            head = [next(myfile) for x in range(vtabuffer)]
-            for line in head:
-                if line.find('+') !=-1:
-                    BlenderName = line.split('#')[1].strip()[:63]
-                    LName = line.split('#')[1].strip().split('+')[0]
-                    RName = line.split('#')[1].strip().split('+')[1]
-                    vtalines.append((BlenderName, LName, RName))
+            #Find vertex group names
+            vtapath = bpy.context.scene.toolscene.qcpath[:-3] + '_01.vta'
+            vtalines = []
+            with open(vtapath) as myfile:
+                head = [next(myfile) for x in range(vtabuffer)]
+                for line in head:
+                    if line.find('+') !=-1:
+                        BlenderName = line.split('#')[1].strip()[:63]
+                        LName = line.split('#')[1].strip().split('+')[0]
+                        RName = line.split('#')[1].strip().split('+')[1]
+                        vtalines.append((BlenderName, LName, RName))
 
-        for line in vtalines:
-            keyl = obj.data.shape_keys.key_blocks[line[0]]
-            keyl.name = (line[1])
-            keyl.value = 1
-            keyr = obj.shape_key_add(from_mix=True,name=line[2])
-            keyr.vertex_group = 'RightSide'
-            keyl.vertex_group = 'LeftSide'
-            keyl.value = 0
-            keyr.value = 0
-            
+            for line in vtalines:
+                keyl = obj.data.shape_keys.key_blocks[line[0]]
+                keyl.name = (line[1])
+                keyl.value = 1
+                keyr = obj.shape_key_add(from_mix=True,name=line[2])
+                keyr.vertex_group = 'RightSide'
+                keyl.vertex_group = 'LeftSide'
+                keyl.value = 0
+                keyr.value = 0
+                
+            for obj in meshes:
+                obj.select_set(True)
+                try:
+                    for key in obj.data.shape_keys.key_blocks:
+                        key.name = key.name.replace('_', '-') #Underscores cause errors
+                except:
+                    print('Mesh has no shape keys.')
+
         for obj in meshes:
             obj.select_set(True)
-            try:
-                for key in obj.data.shape_keys.key_blocks:
-                    key.name = key.name.replace('_', '-') #Underscores cause errors
-            except:
-                print('Mesh has no shape keys.')
-                
+        for obj in meshes:
+            bpy.context.view_layer.objects.active = obj
+            break
+        
+        #raise ValueError
         ob = bpy.context.view_layer.objects.active
         for obj in bpy.data.objects:
             if obj != ob:
