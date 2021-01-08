@@ -75,7 +75,7 @@ class HWMHelpPanel(bpy.types.Panel):
         layouta.label(text='Requires Rectus\'s Source Tools fork')
 
         row = layouta.row()
-        row.operator('hwm.help_operator')
+        row.operator('hwm.test_operator')
 
 class HWM_OT_TEST(bpy.types.Operator):
     bl_label = 'Test'
@@ -83,6 +83,28 @@ class HWM_OT_TEST(bpy.types.Operator):
     bl_idname = 'hwm.test_operator'
 
     def execute(self, context):
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.mode_set(mode='EDIT')
+        #Get average vertice location
+        mesh = bpy.context.view_layer.objects.active.data
+        selected_verts = []
+        for vertex in mesh.vertices:
+            if vertex.select == True:
+                selected_verts.append(vertex)
+        vertsx = []
+        vertsy = []
+        vertsz = []
+        for vertex in selected_verts:
+            vertsx.append(vertex.co[0])
+            vertsy.append(vertex.co[1])
+            vertsz.append(vertex.co[2])
+
+        vertsavgx = (sum(vertsx) / len(vertsx))
+        vertsavgy = (sum(vertsy) / len(vertsy))
+        vertsavgz = (sum(vertsz) / len(vertsz))
+        vertsavg = (vertsavgx, vertsavgy, vertsavgz)
+
+        #return vertsavg
         
 
         return{'FINISHED'}
@@ -168,6 +190,29 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
         vtabuffer = 1000
         eyenames_l = ['eyeball_l', 'eye_l', 'eyeball_left', 'eye_left', 'left_eyeball', 'left_eye', 'l_eye'] #If your eye material is not detected, add it here
         eyenames_r = ['eyeball_r', 'eye_r', 'eyeball_r', 'eye_r', 'right_eyeball', 'right_eye', 'r_eye'] #If your eye material is not detected, add it here
+
+        def getavgverts():
+            bpy.ops.object.mode_set(mode='OBJECT')
+            bpy.ops.object.mode_set(mode='EDIT')
+            mesh = bpy.context.view_layer.objects.active.data
+            selected_verts = []
+            for vertex in mesh.vertices:
+                if vertex.select == True:
+                    selected_verts.append(vertex)
+            vertsx = []
+            vertsy = []
+            vertsz = []
+            for vertex in selected_verts:
+                vertsx.append(vertex.co[0])
+                vertsy.append(vertex.co[1])
+                vertsz.append(vertex.co[2])
+
+            vertsavgx = (sum(vertsx) / len(vertsx))
+            vertsavgy = (sum(vertsy) / len(vertsy))
+            vertsavgz = (sum(vertsz) / len(vertsz))
+            vertsavg = (vertsavgx, vertsavgy, vertsavgz)
+
+            return mathutils.Vector(vertsavg)
 
         def deselectall():
             bpy.ops.object.select_all(action='DESELECT')
@@ -423,15 +468,14 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
             #Select material, move cursor and delete
             obj.active_material_index = eyematerial_r[1]
             bpy.ops.object.material_slot_select()
-            cursortoselected()
-            reyelocation = bpy.context.scene.cursor.location
-            print(reyelocation)
+            reyelocation = getavgverts()
             bpy.ops.mesh.delete(type='FACE')
             bpy.ops.mesh.select_all(action='DESELECT')
             
-            #Select material and delete
+            #Select material, move cursor and delete
             obj.active_material_index = eyematerial_l[1]
             bpy.ops.object.material_slot_select()
+            leyelocation = getavgverts()
             bpy.ops.mesh.delete(type='FACE')
             bpy.ops.mesh.select_all(action='DESELECT')
             
@@ -448,7 +492,7 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
             eyeball_r.location = reyelocation - mathutils.Vector((-0.14498, -0.4008, -0.0199))
             
             eyeball_l = bpy.data.objects['eyeball_l']
-            eyeball_l.location = eyeball_r.location * mathutils.Vector((-1, 1, 1))
+            eyeball_l.location = leyelocation - mathutils.Vector((0.14498, -0.4008, -0.0199))
             
             eyeball_r.parent = armature
             eyeball_l.parent = armature
