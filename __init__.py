@@ -444,74 +444,96 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
             
             bpy.ops.object.mode_set(mode='EDIT')
             bpy.ops.mesh.select_all(action='DESELECT')
-            
-            #Get material names
+
+            uselefteye = False
+            userighteye = False
             for material in obj.data.materials:
                 for name in eyenames_l:
                     if material.name == name:
                         eyematerial_l = material.name
+                        uselefteye = True
                 for name in eyenames_r:
                     if material.name == name:
                         eyematerial_r = material.name
-            
-            #Get material indices
-            index = -1
-            for slot in obj.material_slots:
-                index += 1
-                for name in eyenames_l:
-                    if slot.name == name:
-                        eyematerial_l = (name, index)
-                for name in eyenames_r:
-                    if slot.name == name:
-                        eyematerial_r = (name, index)
-            
-            #Select material, move cursor and delete
-            obj.active_material_index = eyematerial_r[1]
-            bpy.ops.object.material_slot_select()
-            reyelocation = getavgverts()
-            bpy.ops.mesh.delete(type='FACE')
-            bpy.ops.mesh.select_all(action='DESELECT')
-            
-            #Select material, move cursor and delete
-            obj.active_material_index = eyematerial_l[1]
-            bpy.ops.object.material_slot_select()
-            leyelocation = getavgverts()
-            bpy.ops.mesh.delete(type='FACE')
-            bpy.ops.mesh.select_all(action='DESELECT')
-            
-            filepath = utilspath+'\\eyeball.fbx'
-            bpy.ops.import_scene.fbx(filepath=filepath)
+                        userighteye = True
 
-            for obj2 in bpy.data.objects:
-                if obj2.type == 'ARMATURE':
-                    if obj2.name != 'EYEARMATURE.DELETEME':
-                        if obj2.name != 'smd_bone_vis':
-                            armature = obj2
-            
-            eyeball_r = bpy.data.objects['eyeball_r']
-            eyeball_r.location = reyelocation - mathutils.Vector((-0.14498, -0.4008, -0.0199))
-            
-            eyeball_l = bpy.data.objects['eyeball_l']
-            eyeball_l.location = leyelocation - mathutils.Vector((0.14498, -0.4008, -0.0199))
-            
-            eyeball_r.parent = armature
-            eyeball_l.parent = armature
-            eyeball_r.select_set(True)
-            eyeball_l.select_set(True)
-            obj.select_set(True)
-            bpy.context.view_layer.objects.active = obj
-            bpy.ops.object.join()
-            
-            for area in bpy.context.screen.areas:
-                if area.type == 'VIEW_3D':
-                    for region in area.regions:
-                        if region.type == 'WINDOW':
-                            override = {'area': area, 'region': region}
-                            bpy.ops.view3d.snap_cursor_to_center(override)
+            if userighteye == True or uselefteye == True:
+                #Get material indices
+                index = -1
+                for slot in obj.material_slots:
+                    index += 1
+                    if uselefteye == True:
+                        for name in eyenames_l:
+                            if slot.name == name:
+                                eyematerial_l = (name, index)
+                    if userighteye == True:
+                        for name in eyenames_r:
+                            if slot.name == name:
+                                eyematerial_r = (name, index)
 
-            bpy.ops.object.select_all(action='DESELECT')
-            bpy.data.objects['EYEARMATURE.DELETEME'].select_set(True)
-            bpy.ops.object.delete() 
+                if userighteye == True:
+                    #Select material, move cursor and delete
+                    obj.active_material_index = eyematerial_r[1]
+                    bpy.ops.object.material_slot_select()
+                    reyelocation = getavgverts()
+                    bpy.ops.mesh.delete(type='FACE')
+                    bpy.ops.mesh.select_all(action='DESELECT')
+
+                if uselefteye == True:
+                    #Select material, move cursor and delete
+                    obj.active_material_index = eyematerial_l[1]
+                    bpy.ops.object.material_slot_select()
+                    leyelocation = getavgverts()
+                    bpy.ops.mesh.delete(type='FACE')
+                    bpy.ops.mesh.select_all(action='DESELECT')
+                
+                filepath = utilspath+'\\eyeball.fbx'
+                bpy.ops.import_scene.fbx(filepath=filepath)
+
+                for obj2 in bpy.data.objects:
+                    if obj2.type == 'ARMATURE':
+                        if obj2.name != 'EYEARMATURE.DELETEME':
+                            if obj2.name != 'smd_bone_vis':
+                                armature = obj2
+                
+                if userighteye == True:
+                    eyeball_r = bpy.data.objects['eyeball_r']
+                    eyeball_r.location = reyelocation - mathutils.Vector((-0.14498, -0.4008, -0.0199))
+
+
+                if uselefteye == True:
+                    eyeball_l = bpy.data.objects['eyeball_l']
+                    eyeball_l.location = leyelocation - mathutils.Vector((0.14498, -0.4008, -0.0199))
+                
+                if userighteye == True:
+                    eyeball_r.parent = armature
+                    eyeball_r.select_set(True)
+                if uselefteye == True:
+                    eyeball_l.parent = armature
+                    eyeball_l.select_set(True)
+                obj.select_set(True)
+                bpy.context.view_layer.objects.active = obj
+
+                if userighteye == False:
+                    objs = bpy.data.objects
+                    objs.remove(objs["eyeball_r"], do_unlink=True)
+
+                if uselefteye == False:
+                    objs = bpy.data.objects
+                    objs.remove(objs["eyeball_l"], do_unlink=True)
+
+                bpy.ops.object.join()
+                
+                for area in bpy.context.screen.areas:
+                    if area.type == 'VIEW_3D':
+                        for region in area.regions:
+                            if region.type == 'WINDOW':
+                                override = {'area': area, 'region': region}
+                                bpy.ops.view3d.snap_cursor_to_center(override)
+
+                bpy.ops.object.select_all(action='DESELECT')
+                bpy.data.objects['EYEARMATURE.DELETEME'].select_set(True)
+                bpy.ops.object.delete() 
 
         return{'FINISHED'}
 
