@@ -60,6 +60,21 @@ class Settings(bpy.types.PropertyGroup):
         min=1,
         max=179.0)
 
+    eyeoffsetx : bpy.props.FloatProperty(
+        name="X",
+        description="Determines how smooth the mesh should be in degrees",
+        default=-0.14498)
+
+    eyeoffsety : bpy.props.FloatProperty(
+        name="Y",
+        description="Determines how smooth the mesh should be in degrees",
+        default=-0.4008)
+
+    eyeoffsetz : bpy.props.FloatProperty(
+        name="Z",
+        description="Determines how smooth the mesh should be in degrees",
+        default=-0.0199)
+
 class HWMHelpPanel(bpy.types.Panel):
     bl_label = "Info"
     bl_idname = "HWM_PT_HELPPANEL"
@@ -75,7 +90,7 @@ class HWMHelpPanel(bpy.types.Panel):
         layouta.label(text='Requires Rectus\'s Source Tools fork')
 
         row = layouta.row()
-        row.operator('hwm.test_operator')
+        row.operator('hwm.help_operator')
 
 class HWM_OT_TEST(bpy.types.Operator):
     bl_label = 'Test'
@@ -160,6 +175,17 @@ class HWMToolsPanel(bpy.types.Panel):
         toolscene = context.scene.toolscene
         rowg = layoutg.row()
         rowg.prop(toolscene, "subdivision_sharpness")
+
+        layouth = self.layout
+        scene = context.scene
+        toolscene = context.scene.toolscene
+        layouth.label(text='Eye offset:')
+        rowh1 = layouth.row()
+        rowh1.prop(toolscene, "eyeoffsetx")
+        rowh2 = layouth.row()
+        rowh2.prop(toolscene, "eyeoffsety")
+        rowh3 = layouth.row()
+        rowh3.prop(toolscene, "eyeoffsetz")
 
 class HWMToolsPanelB(bpy.types.Panel):
     bl_label = "Tools"
@@ -510,13 +536,17 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
                                 armature = obj2
                 
                 if userighteye == True:
+                    reyeoffset = (bpy.context.scene.toolscene.eyeoffsetx, bpy.context.scene.toolscene.eyeoffsety, bpy.context.scene.toolscene.eyeoffsetz)
                     eyeball_r = bpy.data.objects['eyeball_r']
-                    eyeball_r.location = reyelocation - mathutils.Vector((-0.14498, -0.4008, -0.0199))
+                    #eyeball_r.location = reyelocation - mathutils.Vector((-0.14498, -0.4008, -0.0199))
+                    eyeball_r.location = reyelocation - mathutils.Vector(reyeoffset)
 
 
                 if uselefteye == True:
+                    leyeoffset = (bpy.context.scene.toolscene.eyeoffsetx * -1, bpy.context.scene.toolscene.eyeoffsety, bpy.context.scene.toolscene.eyeoffsetz)
                     eyeball_l = bpy.data.objects['eyeball_l']
-                    eyeball_l.location = leyelocation - mathutils.Vector((0.14498, -0.4008, -0.0199))
+                    #eyeball_l.location = leyelocation - mathutils.Vector((0.14498, -0.4008, -0.0199))
+                    eyeball_l.location = leyelocation - mathutils.Vector(leyeoffset)
                 
                 if userighteye == True:
                     eyeball_r.parent = armature
