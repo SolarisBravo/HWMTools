@@ -63,17 +63,17 @@ class Settings(bpy.types.PropertyGroup):
     eyeoffsetx : bpy.props.FloatProperty(
         name="X",
         description="Determines how smooth the mesh should be in degrees",
-        default=-0.14498)
+        default=0.14498)
 
     eyeoffsety : bpy.props.FloatProperty(
         name="Y",
         description="Determines how smooth the mesh should be in degrees",
-        default=-0.4008)
+        default=0.4008)
 
     eyeoffsetz : bpy.props.FloatProperty(
         name="Z",
         description="Determines how smooth the mesh should be in degrees",
-        default=-0.0199)
+        default=0.0199)
 
 class HWMHelpPanel(bpy.types.Panel):
     bl_label = "Info"
@@ -550,14 +550,14 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
                     reyeoffset = (bpy.context.scene.toolscene.eyeoffsetx, bpy.context.scene.toolscene.eyeoffsety, bpy.context.scene.toolscene.eyeoffsetz)
                     eyeball_r = bpy.data.objects['eyeball_r']
                     #eyeball_r.location = reyelocation - mathutils.Vector((-0.14498, -0.4008, -0.0199))
-                    eyeball_r.location = reyelocation - mathutils.Vector(reyeoffset)
+                    eyeball_r.location = reyelocation + mathutils.Vector(reyeoffset)
 
 
                 if uselefteye == True:
                     leyeoffset = (bpy.context.scene.toolscene.eyeoffsetx * -1, bpy.context.scene.toolscene.eyeoffsety, bpy.context.scene.toolscene.eyeoffsetz)
                     eyeball_l = bpy.data.objects['eyeball_l']
                     #eyeball_l.location = leyelocation - mathutils.Vector((0.14498, -0.4008, -0.0199))
-                    eyeball_l.location = leyelocation - mathutils.Vector(leyeoffset)
+                    eyeball_l.location = leyelocation + mathutils.Vector(leyeoffset)
                 
                 if userighteye == True:
                     eyeball_r.parent = armature
