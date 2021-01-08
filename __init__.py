@@ -439,65 +439,83 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
                     if slot.name == name:
                         eyematerial_r = (name, index)
                         useeyer = True
-            
-            if useeyer == True:
-                #Select material, move cursor and delete (R)
-                obj.active_material_index = eyematerial_r[1]
-                bpy.ops.object.material_slot_select()
-                cursortoselected()
-                reyelocation = bpy.context.scene.cursor.location
-                bpy.ops.mesh.delete(type='FACE')
-                bpy.ops.mesh.select_all(action='DESELECT')
+            if useeyel == True or useeyer == True:
+                
+                if useeyer == True:
+                    #Select material, move cursor and delete (R)
+                    obj.active_material_index = eyematerial_r[1]
+                    bpy.ops.object.material_slot_select()
+                    cursortoselected()
+                    reyelocation = bpy.context.scene.cursor.location
+                    bpy.ops.mesh.delete(type='FACE')
+                    bpy.ops.mesh.select_all(action='DESELECT')
 
-            if useeyel == True:
-                #Select material, move cursor and delete (L)
-                obj.active_material_index = eyematerial_l[1]
-                bpy.ops.object.material_slot_select()
-                cursortoselected()
-                leyelocation = bpy.context.scene.cursor.location
-                bpy.ops.mesh.delete(type='FACE')
-                bpy.ops.mesh.select_all(action='DESELECT')
-            
-            filepath = utilspath+'\\eyeball.fbx'
-            bpy.ops.import_scene.fbx(filepath=filepath)
+                if useeyel == True:
+                    #Select material, move cursor and delete (L)
+                    obj.active_material_index = eyematerial_l[1]
+                    bpy.ops.object.material_slot_select()
+                    cursortoselected()
+                    leyelocation = bpy.context.scene.cursor.location
+                    bpy.ops.mesh.delete(type='FACE')
+                    bpy.ops.mesh.select_all(action='DESELECT')
+                
+                filepath = utilspath+'\\eyeball.fbx'
 
-            for obj2 in bpy.data.objects:
-                if obj2.type == 'ARMATURE':
-                    if obj2.name != 'EYEARMATURE.DELETEME':
-                        if obj2.name != 'smd_bone_vis':
-                            armature = obj2
-            
+                bpy.ops.import_scene.fbx(filepath=filepath)
 
-            roffset = mathutils.Vector((-0.14498, -0.4008, -0.0199))
-            loffset = mathutils.Vector((0.14498, -0.4008, -0.0199))
-            
-            if useeyer == True:
-                eyeball_r = bpy.data.objects['eyeball_r']
-                eyeball_r.location = reyelocation - roffset
-            if useeyel == True:
-                eyeball_l = bpy.data.objects['eyeball_l']
-                eyeball_l.location = leyelocation - loffset
-            if useeyer == True:
-                eyeball_r.parent = armature
-                eyeball_r.select_set(True)
-            if useeyel == True:
-                eyeball_l.parent = armature
-                eyeball_l.select_set(True)
-            obj.select_set(True)
-            bpy.context.view_layer.objects.active = obj
-            bpy.ops.object.join()
-            
-            for area in bpy.context.screen.areas:
-                if area.type == 'VIEW_3D':
-                    for region in area.regions:
-                        if region.type == 'WINDOW':
-                            override = {'area': area, 'region': region}
-                            bpy.ops.view3d.snap_cursor_to_center(override)
+                for obj2 in bpy.data.objects:
+                    if obj2.type == 'ARMATURE':
+                        if obj2.name != 'EYEARMATURE.DELETEME':
+                            if obj2.name != 'smd_bone_vis':
+                                armature = obj2
+                
 
-            bpy.ops.object.select_all(action='DESELECT')
-            bpy.data.objects['EYEARMATURE.DELETEME'].select_set(True)
-            bpy.ops.object.delete() 
+                roffset = mathutils.Vector((-0.14498, -0.4008, -0.0199))
+                loffset = mathutils.Vector((0.14498, -0.4008, -0.0199))
+                
+                if useeyer == True:
+                    eyeball_r = bpy.data.objects['eyeball_r']
+                    eyeball_r.location = reyelocation - roffset
+                if useeyel == True:
+                    eyeball_l = bpy.data.objects['eyeball_l']
+                    eyeball_l.location = leyelocation - loffset
+                if useeyer == True:
+                    eyeball_r.parent = armature
+                    eyeball_r.select_set(True)
+                if useeyel == True:
+                    eyeball_l.parent = armature
+                    eyeball_l.select_set(True)
+                obj.select_set(True)
+                bpy.context.view_layer.objects.active = obj
 
+                if useeyel == False:
+                    objs = bpy.data.objects
+                    try:
+                        objs.remove(objs['eyeball_l'], do_unlink=True)
+                    except:
+                        pass
+
+                if useeyer == False:
+                    objs = bpy.data.objects
+                    try:
+                        objs.remove(objs['eyeball_r'], do_unlink=True)
+                    except:
+                        pass
+                
+                bpy.ops.object.join()
+                
+                for area in bpy.context.screen.areas:
+                    if area.type == 'VIEW_3D':
+                        for region in area.regions:
+                            if region.type == 'WINDOW':
+                                override = {'area': area, 'region': region}
+                                bpy.ops.view3d.snap_cursor_to_center(override)
+
+                bpy.ops.object.select_all(action='DESELECT')
+                bpy.data.objects['EYEARMATURE.DELETEME'].select_set(True)
+                bpy.ops.object.delete()
+
+        bpy.ops.object.mode_set(mode='OBJECT')
         return{'FINISHED'}
 
 class HWM_OT_GETHELP(bpy.types.Operator):
