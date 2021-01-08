@@ -389,7 +389,7 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
         #Import smd
         scene = context.scene
         clearscene()
-        bpy.ops.import_scene.smd(filepath=bpy.context.scene.toolscene.qcpath, upAxis='Y')
+        bpy.ops.import_scene.smd(filepath=bpy.context.scene.toolscene.qcpath, upAxis='Y', doAnim = False)
         scenehasshapekeys = postimportcleanup()
 
         #Cleanup shape keys
