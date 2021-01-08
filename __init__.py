@@ -75,7 +75,8 @@ class HWMHelpPanel(bpy.types.Panel):
         layouta.label(text='Requires Rectus\'s Source Tools fork')
 
         row = layouta.row()
-        row.operator('hwm.help_operator')
+        #row.operator('hwm.help_operator')
+        row.operator('hwm.test_operator')
 
 class HWM_OT_TEST(bpy.types.Operator):
     bl_label = 'Test'
@@ -83,7 +84,6 @@ class HWM_OT_TEST(bpy.types.Operator):
     bl_idname = 'hwm.test_operator'
 
     def execute(self, context):
-        
 
         return{'FINISHED'}
 
@@ -213,6 +213,18 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
         def postimportcleanup():
             removecollections()
             deselectall()
+
+            #Check if .qc is missing "$upaxis Y" line
+            overrideupaxis = False
+            with open(bpy.context.scene.toolscene.qcpath) as myfile:
+                head = [next(myfile) for x in range(25)]
+                for line in head:
+                    if line.find('$upaxis Y') == -1:
+                        overrideupaxis = True
+                    else:
+                        overrideupaxis = False
+                        break
+
             try:
                 bpy.data.objects['VTA vertices'].select_set(True)
             except:
@@ -224,6 +236,9 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
                     if obj.name != 'EYEARMATURE.DELETEME':
                         if obj.name != 'smd_bone_vis':
                             armature = obj
+            
+            if overrideupaxis == True:
+                armature.rotation_euler = (armature.rotation_euler[0] + radians(90), armature.rotation_euler[1], armature.rotation_euler[2])
                     
             armature.select_set(True)
             bpy.context.view_layer.objects.active = armature
@@ -244,6 +259,7 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
                     if obj.data.shape_keys:
                         obj.select_set(True)
                         bpy.context.view_layer.objects.active = obj
+
             
         def bbox(ob):
             return (mathutils.Vector(b) for b in ob.bound_box)
@@ -302,7 +318,7 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
         #Import smd
         scene = context.scene
         clearscene()
-        bpy.ops.import_scene.smd(filepath=bpy.context.scene.toolscene.qcpath)
+        bpy.ops.import_scene.smd(filepath=bpy.context.scene.toolscene.qcpath, upAxis='Y')
         postimportcleanup()
 
         #Cleanup shape keys
