@@ -6,6 +6,10 @@ import io_scene_valvesource
 import mathutils
 from math import radians
 
+
+#Eye offsets:
+#Demoman: (0.05, 0.45, 0.10)
+
 bl_info = {
     "name" : "HWMTools",
     "author" : "Solaris",
@@ -308,6 +312,7 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
             
             if overrideupaxis == True:
                 armature.rotation_euler = (armature.rotation_euler[0] + radians(90), armature.rotation_euler[1], armature.rotation_euler[2])
+            armature.rotation_euler = (armature.rotation_euler[0], armature.rotation_euler[1], armature.rotation_euler[2]+ radians(180))
                     
             armature.select_set(True)
             bpy.context.view_layer.objects.active = armature
