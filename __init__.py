@@ -334,7 +334,7 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
         properties.dmx_format = '22'
         properties.export_format = 'DMX'
         properties.export_path = bpy.context.scene.toolscene.exportpath
-        properties.forward_parity = '+Y'
+        properties.forward_parity = '-Y'
 
         obj = bpy.context.object
         selecthalf()
