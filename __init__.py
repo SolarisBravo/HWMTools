@@ -258,6 +258,16 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
         def postimportcleanup():
             removecollections()
             deselectall()
+
+            overrideupaxis = False
+            with open(bpy.context.scene.toolscene.qcpath) as myfile:
+                head = [next(myfile) for x in range(25)]
+                for line in head:
+                    if line.find('$upaxis Y') == -1:
+                        overrideupaxis = True
+                    else:
+                        overrideupaxis = False
+                        break
             try:
                 bpy.data.objects['VTA vertices'].select_set(True)
             except:
@@ -269,6 +279,9 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
                     if obj.name != 'EYEARMATURE.DELETEME':
                         if obj.name != 'smd_bone_vis':
                             armature = obj
+            
+            if overrideupaxis == True:
+                armature.rotation_euler = (armature.rotation_euler[0] + radians(90), armature.rotation_euler[1], armature.rotation_euler[2])
                     
             armature.select_set(True)
             bpy.context.view_layer.objects.active = armature
@@ -347,7 +360,7 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
         #Import smd
         scene = context.scene
         clearscene()
-        bpy.ops.import_scene.smd(filepath=bpy.context.scene.toolscene.qcpath)
+        bpy.ops.import_scene.smd(filepath=bpy.context.scene.toolscene.qcpath, upAxis='Y')
         postimportcleanup()
 
         #Cleanup shape keys
@@ -363,7 +376,7 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
         properties.dmx_format = '22'
         properties.export_format = 'DMX'
         properties.export_path = bpy.context.scene.toolscene.exportpath
-        properties.forward_parity = '+Y'
+        properties.forward_parity = '-Y'
 
         obj = bpy.context.object
         selecthalf()
@@ -535,6 +548,7 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
                 bpy.data.objects['EYEARMATURE.DELETEME'].select_set(True)
                 bpy.ops.object.delete() 
 
+        bpy.ops.object.mode_set(mode='OBJECT')
         return{'FINISHED'}
 
 class HWM_OT_GETHELP(bpy.types.Operator):
