@@ -102,29 +102,6 @@ class HWM_OT_TEST(bpy.types.Operator):
     bl_idname = 'hwm.test_operator'
 
     def execute(self, context):
-        bpy.ops.object.mode_set(mode='OBJECT')
-        bpy.ops.object.mode_set(mode='EDIT')
-        #Get average vertice location
-        mesh = bpy.context.view_layer.objects.active.data
-        selected_verts = []
-        for vertex in mesh.vertices:
-            if vertex.select == True:
-                selected_verts.append(vertex)
-        vertsx = []
-        vertsy = []
-        vertsz = []
-        for vertex in selected_verts:
-            vertsx.append(vertex.co[0])
-            vertsy.append(vertex.co[1])
-            vertsz.append(vertex.co[2])
-
-        vertsavgx = (sum(vertsx) / len(vertsx))
-        vertsavgy = (sum(vertsy) / len(vertsy))
-        vertsavgz = (sum(vertsz) / len(vertsz))
-        vertsavg = (vertsavgx, vertsavgy, vertsavgz)
-
-        #return vertsavg
-        
 
         return{'FINISHED'}
 
@@ -354,34 +331,39 @@ class HWM_OT_IMPORTQC(bpy.types.Operator):
                 splitgroup = obj.vertex_groups.new(name = groupname)
                 
         def selecthalf():
+            bpy.ops.object.mode_set(mode='OBJECT')
+            bpy.ops.object.mode_set(mode='EDIT')
+            mesh = bmesh.from_edit_mesh(bpy.context.view_layer.objects.active.data)
+            rightverts = []
+            leftverts = []
+            for vertex in mesh.verts:
+                vertex.select = False
+                if vertex.co[0] >= 0:
+                    rightverts.append(vertex)
+                else:
+                    leftverts.append(vertex)
+            
             obj.show_only_shape_key = False
             
-            bpy.ops.object.mode_set(mode='EDIT')
-            o = bbox_center(bpy.context.edit_object)
-            x, y, z = bbox_axes(bpy.context.edit_object) 
-            data = bpy.context.edit_object.data
-            bm = bmesh.from_edit_mesh(data)
-            
-            #Select half
-            for v in bm.verts:
-                v.select = False
-                v.select = mathutils.geometry.distance_point_to_plane(v.co, o, x) <= 0
-            bmesh.update_edit_mesh(data)
+            for vertex in rightverts:
+                vertex.select = True
+            bpy.context.view_layer.objects.active = bpy.context.view_layer.objects.active
             
             createvertexgroup('RightSide')
             bpy.ops.object.vertex_group_assign()
+
+            for vertex in mesh.verts:
+                vertex.select = False
             
-            #Invert selection
-            for v in bm.verts:
-                v.select = not v.select
-            bmesh.update_edit_mesh(data)
+            for vertex in leftverts:
+                vertex.select = True
+            bpy.context.view_layer.objects.active = bpy.context.view_layer.objects.active
             
             createvertexgroup('LeftSide')
             bpy.ops.object.vertex_group_assign()
             
-            for v in bm.verts:
-                v.select = False
-            bmesh.update_edit_mesh(data)
+            for vertex in mesh.verts:
+                vertex.select = False
             
         def cursortoselected():
             for area in bpy.context.screen.areas:
